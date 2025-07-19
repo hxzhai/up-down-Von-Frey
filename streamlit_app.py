@@ -87,7 +87,7 @@ if start:
     max_code = max(used_codes)
     delta = (max_code - min_code) / (max_order - min_order)
 
-    st.markdown(f"📐 当前 delta = `{round(delta, 4)}`")
+   
 
     results = []
 
