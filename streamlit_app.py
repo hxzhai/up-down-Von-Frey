@@ -13,8 +13,8 @@ st.title("🐭 Von Frey 50% 缩足阈值计算工具")
 # 读取数据
 # ----------------------------
 try:
-    code_df = pd.read_csv("\u7f16\u53f7\u8868.txt", sep="\t")
-    k_df = pd.read_csv("k值表.txt", sep="\t", dtype={"\u6d4b\u91cf\u7ed3\u679c": str})
+    code_df = pd.read_csv("编号表.txt", sep="\t")
+    k_df = pd.read_csv("k值表.txt", sep="\t", dtype={"测量结果": str})  # 保留前导 0
 except Exception as e:
     st.error("❌ 无法读取编号表或 k 值表，请确保文件放在项目根目录。")
     st.stop()
@@ -58,9 +58,7 @@ median_order = (min_order + max_order) // 2
 st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_order}`")
 
 # ✅ 用选择的组件范围内编号计算所有组件的最大和最小编号
-min_code = sub_df["编号"].min()
-max_code = sub_df["编号"].max()
-delta = (max_code - min_code) / (max_order - min_order)
+delta = (sub_df["编号"].max() - sub_df["编号"].min()) / (max_order - min_order)
 
 # ----------------------------
 # 主计算
@@ -77,7 +75,7 @@ if start:
     for seq in seq_list:
         seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
         cur_order = median_order
-        for ch in seq_clean:
+        for ch in seq_clean[:-1]:  # ✅ 只移动到倒数第2步
             if ch == "0":
                 cur_order += 1
             elif ch == "1":
