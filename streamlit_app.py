@@ -38,14 +38,13 @@ with st.sidebar.expander("📐 方法原理与操作说明（点击展开）", e
 ### 📐 方法原理简介
 
 本工具依据 **Dixon 提出的 Up-Down 方法**，对一系列 Von Frey 刺激丝的刺激结果进行逻辑回溯，结合实验所用纤维丝的编号间距（δ）与匹配的经验值 k 值，计算 50% 缩足反应的刺激强度阈值。
-参考文献：Chaplan SR, Bach FW, Pogrel JW, Chung JM, Yaksh TL. Quantitative assessment of tactile allodynia in the rat paw. J Neurosci Methods. 1994 Jul;53(1):55-63. doi: 10.1016/0165-0270(94)90144-9.
 
-**计算公式：**  
+**计算公式：**「1」
   50% 缩足阈值（克） = 10 ^ (Xf + k × δ) / 10000
 
 其中：
 - **Xf**：最后一次测试纤维丝的对数编号（log₁₀(克重 × 10000)）
-- **k**：与反应序列对应的经验系数（来源于 k 值表，Dixon WJ. Efficient analysis of experimental observations. Annu Rev Pharmacol Toxicol. 1980;20:441-62. doi: 10.1146/annurev.pa.20.040180.002301.）
+- **k**：与反应序列对应的经验系数（来源于 k 值表「2」）
 - **δ**：刺激丝之间的平均编号间距（取 log₁₀(克重 × 10000) 后的均差）
 
 ---
@@ -81,14 +80,18 @@ with st.sidebar.expander("📐 方法原理与操作说明（点击展开）", e
 
 ### 💻 工具使用方法
 
-	1.	点击左上角 「»」图标展开侧边栏
-	2.	在侧边栏依次设置：
-	•	最小刺激丝克重
-	•	最大刺激丝克重
-	•	反应序列（每行一个）
-	3.	点击 “🚀 开始计算” 查看结果
-	4.	可点击下载按钮导出为 CSV 文件保存
+1.	点击左上角 「»」图标展开侧边栏
+2.	在侧边栏依次设置：
+•	最小刺激丝克重
+•	最大刺激丝克重
+•	反应序列（每行一个）
+3.	点击 “🚀 开始计算” 查看结果
+4.	可点击下载按钮导出为 CSV 文件保存
 
+---
+参考文献：
+	「1」Chaplan SR, Bach FW, Pogrel JW, Chung JM, Yaksh TL. Quantitative assessment of tactile allodynia in the rat paw. J Neurosci Methods. 1994 Jul;53(1):55-63. doi: 10.1016/0165-0270(94)90144-9.
+	「2」Dixon WJ. Efficient analysis of experimental observations. Annu Rev Pharmacol Toxicol. 1980;20:441-62. doi: 10.1146/annurev.pa.20.040180.002301.
 ---
 ### 如需帮助请联系维护者：zhaihexin1999@163.com
     """)
