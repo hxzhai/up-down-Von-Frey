@@ -13,8 +13,7 @@ st.title("🐭 Von Frey 50% 缩足阈值计算工具")
 # ----------------------------
 try:
     code_df = pd.read_csv("编号表.txt", sep="\t")
-    # ✅ 保证测量结果列读取为字符串（保留前导 0）
-    k_df = pd.read_csv("k值表.txt", sep="\t", dtype={"测量结果": str})
+    k_df = pd.read_csv("k值表.txt", sep="\t", dtype={"测量结果": str})  # 保留前导0
 except Exception as e:
     st.error("❌ 无法读取编号表或 k 值表，请确保文件放在项目根目录。")
     st.stop()
@@ -53,10 +52,12 @@ n_fibers = max_order - min_order + 1
 
 min_code = sub_df["编号"].min()
 max_code = sub_df["编号"].max()
-delta = (max_code - min_code) / (n_fibers - 1)
+
+# ✅ 按新逻辑计算 delta（编号最大值 - 最小值）
+delta = max_code - min_code
 median_order = (min_order + max_order) // 2
 
-st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_order}`，delta = `{round(delta, 4)}`")
+st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_order}`，delta = `最大编号 - 最小编号 = {round(delta, 4)}`")
 
 # ----------------------------
 # 主计算逻辑
@@ -64,7 +65,7 @@ st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_or
 if start:
     st.subheader("📌 计算结果")
 
-    # ✅ 清洗 k 值表的测量结果列
+    # 清洗 k 值表中测量结果列
     k_df["测量结果"] = (
         k_df["测量结果"]
         .astype(str)
@@ -72,28 +73,27 @@ if start:
     )
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
-    # ✅ 显示合法的反应序列
+    # 显示所有可用序列
     valid_sequences = sorted(k_df["测量结果"].dropna().unique().tolist())
     st.markdown("### 🧾 当前可用的反应序列（k值表中）")
     st.write(valid_sequences)
 
-    # 用户输入的反应序列
+    # 处理每一条输入序列
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
     results = []
 
     for seq in seq_list:
-        # ✅ 保留 0 和 1，丢弃其他字符
+        # 保留 0 和 1 字符
         seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
         st.markdown(f"🧪 匹配中：`{seq_clean}`")
 
-        # 推算最终刺激序号
         cur_order = median_order
         for ch in seq_clean:
             if ch == "0":
                 cur_order += 1
             elif ch == "1":
                 cur_order -= 1
-        cur_order = max(min_order, min(max_order, cur_order))  # 防止越界
+        cur_order = max(min_order, min(max_order, cur_order))  # 防越界
 
         row = code_df[code_df["序号"] == cur_order]
         if row.empty:
@@ -128,7 +128,7 @@ if start:
     df_result = pd.DataFrame(results)
     st.dataframe(df_result, use_container_width=True)
 
-    # ✅ 下载按钮
+    # 下载按钮
     csv = df_result.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         label="📥 下载结果为 CSV",
