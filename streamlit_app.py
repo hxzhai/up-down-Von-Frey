@@ -6,7 +6,7 @@ import numpy as np
 # 页面设置
 # ----------------------------
 st.set_page_config(page_title="50% 缩足阈值计算", layout="wide")
-st.title("🐭 Von Frey 50% 缩足阈值计算工具（中文界面）")
+st.title("🐭 Von Frey 50% 缩足阈值计算工具")
 
 # ----------------------------
 # 读取数据
@@ -62,6 +62,9 @@ st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_or
 # ----------------------------
 st.subheader("📌 计算结果")
 
+# 清理 k 值表中的序列列
+k_df["测量结果"] = k_df["测量结果"].astype(str).str.strip()
+
 seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
 results = []
 
@@ -73,8 +76,7 @@ for seq in seq_list:
             cur_order += 1
         elif ch == "1":
             cur_order -= 1
-
-        cur_order = max(min_order, min(max_order, cur_order))  # 防止越界
+    cur_order = max(min_order, min(max_order, cur_order))  # 防止越界
 
     row = code_df[code_df["序号"] == cur_order]
     if row.empty:
@@ -84,11 +86,12 @@ for seq in seq_list:
     xf = row["编号"].values[0]
     final_weight = row["克数"].values[0]
 
-    if seq not in k_df["测量结果"].values:
+    seq_clean = seq.strip()
+    if seq_clean not in k_df["测量结果"].values:
         results.append({"反应序列": seq, "错误": "k值表中未找到该序列"})
         continue
 
-    k_val = k_df[k_df["测量结果"] == seq]["k值"].values[0]
+    k_val = k_df.loc[k_df["测量结果"] == seq_clean, "k值"].values[0]
     threshold_log = xf + k_val * delta
     threshold_g = 10 ** threshold_log / 10000
 
@@ -101,5 +104,4 @@ for seq in seq_list:
         "50% 缩足阈值（克）": round(threshold_g, 4)
     })
 
-# 显示结果表格
 st.dataframe(pd.DataFrame(results), use_container_width=True)
