@@ -37,7 +37,7 @@ seq_input = st.sidebar.text_area("输入反应序列（每行一条）", value="
 start = st.sidebar.button("🚀 开始计算")
 
 # ----------------------------
-# 计算准备：按钮外，提前定义变量
+# 计算准备（按钮外）
 # ----------------------------
 sub_df = code_df[(code_df["克数"] >= min_weight) & (code_df["克数"] <= max_weight)].copy()
 
@@ -62,7 +62,7 @@ st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_or
 if start:
     st.subheader("📌 计算结果")
 
-    # 清洗 k 值表数据
+    # ✅ 清洗 k值表
     k_df["测量结果"] = (
         k_df["测量结果"]
         .astype(str)
@@ -70,11 +70,16 @@ if start:
     )
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
+    # ✅ 显示可查的所有反应序列
+    st.markdown("### 🧾 当前可用的反应序列（k值表中）")
+    st.write(k_df["测量结果"].dropna().unique().tolist())
+
+    # ✅ 准备用户输入序列
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
     results = []
 
     for seq in seq_list:
-        # 清洗用户输入
+        # 清洗序列
         seq_clean = (
             seq.strip()
             .replace(" ", "")
@@ -82,6 +87,9 @@ if start:
             .replace("\r", "")
             .replace("\n", "")
         )
+
+        # 显示当前匹配状态（调试）
+        st.markdown(f"🧪 匹配中：`{seq_clean}`")
 
         cur_order = median_order
         for ch in seq_clean:
@@ -99,7 +107,6 @@ if start:
         xf = row["编号"].values[0]
         final_weight = row["克数"].values[0]
 
-        # 更鲁棒的匹配方式
         if not k_df["测量结果"].isin([seq_clean]).any():
             results.append({"反应序列": seq_clean, "错误": "k值表中未找到该序列"})
             continue
@@ -122,4 +129,14 @@ if start:
             "50% 缩足阈值（克）": round(threshold_g, 4)
         })
 
-    st.dataframe(pd.DataFrame(results), use_container_width=True)
+    df_result = pd.DataFrame(results)
+    st.dataframe(df_result, use_container_width=True)
+
+    # ✅ 导出按钮（可选）
+    csv = df_result.to_csv(index=False).encode("utf-8-sig")
+    st.download_button(
+        label="📥 下载结果为 CSV",
+        data=csv,
+        file_name="VonFrey_结果.csv",
+        mime="text/csv"
+    )
