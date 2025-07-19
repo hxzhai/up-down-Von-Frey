@@ -11,7 +11,6 @@ st.title("🐭 Von Frey 50% 缩足阈值计算工具")
 # ----------------------------
 # 读取数据
 # ----------------------------
-
 try:
     code_df = pd.read_csv("编号表.txt", sep="\t")
     k_df = pd.read_csv("k值表.txt", sep="\t")
@@ -35,17 +34,35 @@ st.sidebar.header("📥 参数设置")
 min_weight = st.sidebar.selectbox("选择最小刺激丝克重", options=code_df["克数"].tolist())
 max_weight = st.sidebar.selectbox("选择最大刺激丝克重", options=code_df["克数"].tolist())
 seq_input = st.sidebar.text_area("输入反应序列（每行一条）", value="0001\n0010\n0101")
-
 start = st.sidebar.button("🚀 开始计算")
+
 # ----------------------------
-# 计算准备
+# 计算准备：放在按钮外，让变量定义在前
 # ----------------------------
 sub_df = code_df[(code_df["克数"] >= min_weight) & (code_df["克数"] <= max_weight)].copy()
 
+if sub_df.empty:
+    st.error("❌ 所选克重范围无匹配，请重新选择。")
+    st.stop()
+
+min_order = sub_df["序号"].min()
+max_order = sub_df["序号"].max()
+n_fibers = max_order - min_order + 1
+
+min_code = sub_df["编号"].min()
+max_code = sub_df["编号"].max()
+delta = (max_code - min_code) / (n_fibers - 1)
+
+median_order = (min_order + max_order) // 2
+
+st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_order}`，delta = `{round(delta, 4)}`")
+
+# ----------------------------
+# 主计算逻辑（点击按钮后执行）
+# ----------------------------
 if start:
     st.subheader("📌 计算结果")
 
-    # 👇 👇 👇 把所有逻辑缩进进来！
     k_df["测量结果"] = k_df["测量结果"].astype(str).str.strip()
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
