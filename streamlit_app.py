@@ -36,6 +36,7 @@ min_weight = st.sidebar.selectbox("选择最小刺激丝克重", options=code_df
 max_weight = st.sidebar.selectbox("选择最大刺激丝克重", options=code_df["克数"].tolist())
 seq_input = st.sidebar.text_area("输入反应序列（每行一条）", value="0001\n0010\n0101")
 
+start = st.sidebar.button("🚀 开始计算")
 # ----------------------------
 # 计算准备
 # ----------------------------
