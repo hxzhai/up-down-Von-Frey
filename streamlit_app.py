@@ -74,15 +74,23 @@ if start:
 
     for seq in seq_list:
         seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
+        path = [median_order]
         cur_order = median_order
+
         for ch in seq_clean:
             if ch == "0":
                 cur_order += 1
             elif ch == "1":
                 cur_order -= 1
-            cur_order = max(min_order, min(max_order, cur_order))
+            cur_order = max(min_order, min(max_order, cur_order))  # 防越界
+            path.append(cur_order)
 
-        row = code_df[code_df["序号"] == cur_order]
+        if len(path) < 2:
+            results.append({"反应序列": seq_clean, "错误": "路径太短，无法判断最后刺激"})
+            continue
+
+        last_order = path[-2]  # ✅ 最后一根实际使用的纤维丝
+        row = code_df[code_df["序号"] == last_order]
         if row.empty:
             results.append({"反应序列": seq_clean, "错误": "找不到对应序号"})
             continue
