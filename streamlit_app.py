@@ -34,7 +34,7 @@ st.sidebar.header("📥 参数设置")
 
 min_weight = st.sidebar.selectbox("选择最小刺激丝克重", options=code_df["克数"].tolist())
 max_weight = st.sidebar.selectbox("选择最大刺激丝克重", options=code_df["克数"].tolist())
-seq_input = st.sidebar.text_area("输入反应序列（每行一条）", value="0001\n0010\n0101")
+seq_input = st.sidebar.text_area("输入反应序列（每行一条）")
 start = st.sidebar.button("🚀 开始计算")
 
 # ----------------------------
@@ -60,21 +60,12 @@ if start:
     st.subheader("📌 计算结果")
 
     # 清洗 k 值表
-    k_df["测量结果"] = (
-        k_df["测量结果"]
-        .astype(str)
-        .str.replace(r"[\s\r\n\t]", "", regex=True)
-    )
+    k_df["测量结果"] = k_df["测量结果"].astype(str).str.replace(r"[\s\r\n\t]", "", regex=True)
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
-
-    # 显示合法反应序列
-    valid_sequences = sorted(k_df["测量结果"].dropna().unique().tolist())
-    st.markdown("### 🧾 当前可用的反应序列（k值表中）")
-    st.write(valid_sequences)
 
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
 
-    used_orders = set()  # ✅ 所有走过的序号
+    used_orders = set()
     for seq in seq_list:
         cur_order = median_order
         seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
@@ -96,21 +87,19 @@ if start:
     max_code = max(used_codes)
     delta = (max_code - min_code) / (max_order - min_order)
 
-    st.markdown(f"📐 delta = `(最大使用编号 - 最小使用编号) / (最大序号 - 最小序号)` = `{round(max_code, 3)} - {round(min_code, 3)} / ({max_order} - {min_order}) = {round(delta, 4)}`")
+    st.markdown(f"📐 当前 delta = `{round(delta, 4)}`")
 
     results = []
 
     for seq in seq_list:
         seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
-        st.markdown(f"🧪 匹配中：`{seq_clean}`")
-
         cur_order = median_order
         for ch in seq_clean:
             if ch == "0":
                 cur_order += 1
             elif ch == "1":
                 cur_order -= 1
-            cur_order = max(min_order, min(max_order, cur_order))  # 防越界
+            cur_order = max(min_order, min(max_order, cur_order))
 
         row = code_df[code_df["序号"] == cur_order]
         if row.empty:
