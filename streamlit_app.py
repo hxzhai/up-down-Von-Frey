@@ -18,6 +18,7 @@ except Exception as e:
     st.error("❌ 无法读取编号表或k值表，请确保文件放在项目根目录。")
     st.stop()
 
+# 检查列名
 if '克数' not in code_df.columns or '编号' not in code_df.columns or '序号' not in code_df.columns:
     st.error("❌ 编号表格式不正确，必须包含‘克数’, ‘编号’, ‘序号’列。")
     st.stop()
@@ -37,7 +38,7 @@ seq_input = st.sidebar.text_area("输入反应序列（每行一条）", value="
 start = st.sidebar.button("🚀 开始计算")
 
 # ----------------------------
-# 计算准备（按钮外）
+# 计算准备
 # ----------------------------
 sub_df = code_df[(code_df["克数"] >= min_weight) & (code_df["克数"] <= max_weight)].copy()
 
@@ -62,7 +63,7 @@ st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_or
 if start:
     st.subheader("📌 计算结果")
 
-    # ✅ 清洗 k值表
+    # ✅ 强制转换测量结果为字符串并清理不可见字符
     k_df["测量结果"] = (
         k_df["测量结果"]
         .astype(str)
@@ -70,16 +71,17 @@ if start:
     )
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
-    # ✅ 显示可查的所有反应序列
+    # ✅ 显示所有可用反应序列（作为参考）
+    valid_sequences = sorted(k_df["测量结果"].dropna().unique().tolist())
     st.markdown("### 🧾 当前可用的反应序列（k值表中）")
-    st.write(k_df["测量结果"].dropna().unique().tolist())
+    st.write(valid_sequences)
 
-    # ✅ 准备用户输入序列
+    # 读取用户输入
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
     results = []
 
     for seq in seq_list:
-        # 清洗序列
+        # 清洗用户输入
         seq_clean = (
             seq.strip()
             .replace(" ", "")
@@ -88,9 +90,9 @@ if start:
             .replace("\n", "")
         )
 
-        # 显示当前匹配状态（调试）
         st.markdown(f"🧪 匹配中：`{seq_clean}`")
 
+        # 计算最终刺激位置
         cur_order = median_order
         for ch in seq_clean:
             if ch == "0":
@@ -107,6 +109,7 @@ if start:
         xf = row["编号"].values[0]
         final_weight = row["克数"].values[0]
 
+        # 匹配 k 值
         if not k_df["测量结果"].isin([seq_clean]).any():
             results.append({"反应序列": seq_clean, "错误": "k值表中未找到该序列"})
             continue
@@ -132,7 +135,7 @@ if start:
     df_result = pd.DataFrame(results)
     st.dataframe(df_result, use_container_width=True)
 
-    # ✅ 导出按钮（可选）
+    # ✅ 导出按钮
     csv = df_result.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         label="📥 下载结果为 CSV",
