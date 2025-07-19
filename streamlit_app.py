@@ -63,7 +63,7 @@ st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_or
 if start:
     st.subheader("📌 计算结果")
 
-    # ✅ 强制转换测量结果为字符串并清理不可见字符
+    # ✅ 清洗 k值表
     k_df["测量结果"] = (
         k_df["测量结果"]
         .astype(str)
@@ -71,28 +71,20 @@ if start:
     )
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
-    # ✅ 显示所有可用反应序列（作为参考）
+    # ✅ 显示所有合法序列
     valid_sequences = sorted(k_df["测量结果"].dropna().unique().tolist())
     st.markdown("### 🧾 当前可用的反应序列（k值表中）")
     st.write(valid_sequences)
 
-    # 读取用户输入
+    # 读取并清洗用户输入
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
     results = []
 
     for seq in seq_list:
-        # 清洗用户输入
-        seq_clean = (
-            seq.strip()
-            .replace(" ", "")
-            .replace("\t", "")
-            .replace("\r", "")
-            .replace("\n", "")
-        )
-
+        # ✅ 保留前导0：仅保留 0 和 1
+        seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
         st.markdown(f"🧪 匹配中：`{seq_clean}`")
 
-        # 计算最终刺激位置
         cur_order = median_order
         for ch in seq_clean:
             if ch == "0":
@@ -109,7 +101,6 @@ if start:
         xf = row["编号"].values[0]
         final_weight = row["克数"].values[0]
 
-        # 匹配 k 值
         if not k_df["测量结果"].isin([seq_clean]).any():
             results.append({"反应序列": seq_clean, "错误": "k值表中未找到该序列"})
             continue
@@ -135,7 +126,7 @@ if start:
     df_result = pd.DataFrame(results)
     st.dataframe(df_result, use_container_width=True)
 
-    # ✅ 导出按钮
+    # ✅ 下载按钮
     csv = df_result.to_csv(index=False).encode("utf-8-sig")
     st.download_button(
         label="📥 下载结果为 CSV",
