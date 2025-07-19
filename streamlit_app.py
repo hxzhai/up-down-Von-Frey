@@ -54,6 +54,11 @@ median_order = (min_order + max_order) // 2
 
 st.markdown(f"✅ 已选 {n_fibers} 根刺激丝，中位序号为：`{median_order}`")
 
+# ✅ 使用范围内编号计算 delta
+min_code = sub_df["编号"].min()
+max_code = sub_df["编号"].max()
+delta = (max_code - min_code) / (max_order - min_order)
+
 # ----------------------------
 # 主计算逻辑
 # ----------------------------
@@ -65,31 +70,6 @@ if start:
     k_df["k值"] = pd.to_numeric(k_df["k值"], errors="coerce")
 
     seq_list = [line.strip() for line in seq_input.strip().splitlines() if line.strip()]
-
-    used_orders = set()
-    for seq in seq_list:
-        cur_order = median_order
-        seq_clean = ''.join(ch for ch in seq if ch in ['0', '1'])
-        used_orders.add(cur_order)
-        for ch in seq_clean:
-            if ch == "0":
-                cur_order += 1
-            elif ch == "1":
-                cur_order -= 1
-            cur_order = max(min_order, min(max_order, cur_order))
-            used_orders.add(cur_order)
-
-    used_codes = code_df[code_df["序号"].isin(used_orders)]["编号"].tolist()
-    if not used_codes:
-        st.error("❌ 无法根据反应序列获取任何有效的编号。")
-        st.stop()
-
-    min_code = min(used_codes)
-    max_code = max(used_codes)
-    delta = (max_code - min_code) / (max_order - min_order)
-
-   
-
     results = []
 
     for seq in seq_list:
